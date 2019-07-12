@@ -31,4 +31,10 @@ function marshall(json) {
     sheet.getRange(1, column_names.length + 1, 1, add_column_names.length).setValues([add_column_names]);
     column_names = column_names.concat(add_column_names);
   }
+
+  var values = [];
+  for (var i = 0; i < column_names.length; i++) {
+    values.push(json['data'][column_names[i]] || null);
+  }
+  sheet.appendRow(values);
 }
