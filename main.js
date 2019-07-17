@@ -38,3 +38,29 @@ function marshall(json) {
   }
   sheet.appendRow(values);
 }
+
+/**
+ * POST用のトークンをスクリプトプロパティにセットする.
+ */
+function setPostToken() {
+  var token = generateRandomString(24);
+  PropertiesService.getScriptProperties().setProperty('POST_TOKEN', token);
+}
+
+/**
+ * 指定の長さのランダムな英数字文字列を生成して返す.
+ *
+ * @param integer length 文字数
+ *
+ * @return string 英数字文字列
+ */
+function generateRandomString(length) {
+    var chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    var result = '';
+
+    for (var i = 0; i < length; i++) {
+        result += chars[Math.floor(Math.random() * chars.length)];
+    }
+
+    return result;
+}
