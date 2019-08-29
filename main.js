@@ -39,6 +39,15 @@ function marshall(json) {
   sheet.appendRow(values);
 }
 
+function doPost(e) {
+  var request = JSON.parse(e['postData']['contents']);
+  if (request['token'] != PropertiesService.getScriptProperties().getProperty('POST_TOKEN')) {
+    return;
+  }
+
+  marshall(request['parameter']);
+}
+
 /**
  * POST用のトークンをスクリプトプロパティにセットする.
  */
