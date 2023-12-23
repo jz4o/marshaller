@@ -39,9 +39,62 @@ function marshall(json) {
   sheet.appendRow(values);
 }
 
+function doGet(e) {
+  if (e.parameter.token !== PropertiesService.getScriptProperties().getProperty('API_TOKEN')) {
+    return;
+  }
+
+  var sheetName = e.parameter.sheet;
+  var sheet = spreadSheet.getSheetByName(sheetName);
+  if (sheet == null) {
+    return [];
+  }
+
+  var rows = sheet.getDataRange().getValues();
+  var columnNames = rows.shift();
+
+  var responseBody;
+  if (e.parameter.columns == undefined) {
+    responseBody = rows.map(row => {
+      var object = {};
+      row.forEach((value, columnIndex) => {
+        object[columnNames[columnIndex]] = value;
+      });
+
+      return object;
+    });
+  } else {
+    var parameterColumnNames = e.parameter.columns?.split(',').filter(columnName => columnName);
+    if (parameterColumnNames.length == 0) {
+      responseBody = [];
+    } else if (parameterColumnNames.length == 1) {
+      var targetColumnName = parameterColumnNames[0];
+      var targetColumnIndex = columnNames.indexOf(targetColumnName);
+
+      responseBody = rows.map(row => row[targetColumnIndex]);
+    } else {
+      responseBody = rows.map(row => {
+        var object = {};
+        parameterColumnNames.forEach(parameterColumnName => {
+          var columnIndex = columnNames.indexOf(parameterColumnName);
+          object[parameterColumnName] = row[columnIndex];
+        });
+
+        return object;
+      });
+    }
+  }
+
+  var response = ContentService.createTextOutput();
+  response.setMimeType(ContentService.MimeType.JSON);
+  response.setContent(JSON.stringify({ rows: responseBody }));
+
+  return response;
+}
+
 function doPost(e) {
   var request = JSON.parse(e['postData']['contents']);
-  if (request['token'] != PropertiesService.getScriptProperties().getProperty('POST_TOKEN')) {
+  if (request['token'] != PropertiesService.getScriptProperties().getProperty('API_TOKEN')) {
     return;
   }
 
@@ -49,11 +102,11 @@ function doPost(e) {
 }
 
 /**
- * POST用のトークンをスクリプトプロパティにセットする.
+ * API用のトークンをスクリプトプロパティにセットする.
  */
-function setPostToken() {
+function setAPIToken() {
   var token = generateRandomString(24);
-  PropertiesService.getScriptProperties().setProperty('POST_TOKEN', token);
+  PropertiesService.getScriptProperties().setProperty('API_TOKEN', token);
 }
 
 /**
